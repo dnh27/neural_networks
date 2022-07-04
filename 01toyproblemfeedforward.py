@@ -1,6 +1,3 @@
-from cmath import isclose
-from ctypes.wintypes import PINT
-from re import X
 import numpy as np
 
 with open ('data\data_dark_bright_test_4000.csv', 'rt') as f:
@@ -27,6 +24,8 @@ for line in data_list:
     
     anatol_list.append(num_list)
 
+correct = 0
+not_correct = 0
 
 for used_line in range(len(data_list)):
     x = []
@@ -34,24 +33,26 @@ for used_line in range(len(data_list)):
     for element in anatol_list[used_line][1::]:
         x.append(element)  
     
-    x_vector = np.array(x)
-
-    h = sigma(np.dot(w_a, x_vector))
+    x_vector = np.array(x)/255
+    
+    h = sigma(np.dot(w_a, x_vector)) 
 
     y = sigma(np.dot(w_b, h))
-    correct = 0
-    not_correct = 0
+    
+    
     if y[0] > y[1]:
-        guess = 1
-    elif y[0] < y[1]:
         guess = 0
+    elif y[0] < y[1]:
+        guess = 1
     else:
         print("equal")
+    print(guess, answer)
     if guess == answer:
         correct += 1
     else:
         not_correct += 1
-print(correct)
+
+
 print(100/(correct+not_correct)*correct)
 """
     print("x vector=", x_vector)
