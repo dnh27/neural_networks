@@ -4,8 +4,7 @@ with open ('data\data_dark_bright_test_4000.csv', 'rt') as f:
     data_list = f.readlines()
     f.close()
 
-def sigma(z):
-    return 1 / (1 + np.exp(-z))
+
     
 w_a = np.array([[-0.3, -0.7, -0.9, -0.9], [-1, -0.6, -0.6, -0.6], [0.8, 0.5, 0.7, 0.8]])
 w_b = np.array([[2.6, 2.1, -1.2], [-2.3, -2.3, 1.1]])
