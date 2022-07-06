@@ -25,7 +25,7 @@ class Network:
         
         #calc y / output
         y = sigma(np.dot(self.wB, h))
-        return y, x_vector, h
+        return y, h, x_vector
     
     def test(self, data_list):
         
@@ -91,20 +91,30 @@ class Network:
         correct = 0
         not_correct = 0
         
+        #
+        
         for used_line in range(len(data_list)):
             x = []
+            
+            # iterate through lines, get answer
             correct_answer = anatol_list[used_line][0]
             
             for element in anatol_list[used_line][1::]:
                 x.append(element/255)
                 
-            y = self.feedforward(x)
-            error_out = np.array([correct_answer]) - y
-            error_hid = np.dot(self.wB.reshape(-1, 1), error_out.reshape(-1, 1))
-            print(self.wA)
-            self.wB = self.wB + self.learning_rate * (np.dot(error_out*y*(1 - y), self.feedforward[2].T))
-            self.wA = self.wA + self.learning_rate * (np.dot(error_out*self.h*(1 - self.h), self.feedforward[1].T))
-            print(self.wA)
+            y = self.feedforward(x)[0]
+            error_out = np.array([correct_answer], dtype=object) - y
+            
+            error_hid = np.dot(self.wB.T, error_out)
+            
+            h = self.feedforward(x)[1]
+            h = h.reshape(-1, 1)
+            
+            print(self.learning_rate * (error_out * y * (1 - y).shape))
+            self.wB = self.wB + np.dot(self.learning_rate * (error_out * y * (1 - y).reshape(-1, 1)), h.T)
+            self.wA = self.wA + np.dot(self.learning_rate * (error_out*h*(1 - h), self.feedforward(x)[2].T))
+            
+            # compare answer with guess
             if y[0] > y[1]:
                 guess = 0
                 
@@ -115,7 +125,8 @@ class Network:
                 correct += 1
             else:
                 not_correct += 1
-
+        
+        #calc and print success rate
         success_rate = 100/(correct+not_correct)*correct
         print(success_rate)
 
