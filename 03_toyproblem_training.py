@@ -1,6 +1,7 @@
 import numpy as np
 
 def sigma(z):
+
     return 1 / (1 + np.exp(-z))
 
 """with open ('data\data_dark_bright_test_4000.csv', 'rt') as f:
@@ -32,8 +33,9 @@ class Network:
     def success_ratio(answer, y):
         pass
     
-    def test(self, data_list):        
+    def test(self, data_list, data_size):        
         #Edit data
+        
         anatol_list = []
         
         for line in data_list:              
@@ -56,13 +58,13 @@ class Network:
             
             for element in anatol_list[used_line][1::]:
                 
-                x.append(element/255)
+                x.append(element/data_size)
                 
-            y, _, _ = self.feedforward(x)
-            _, _, x_vector = self.feedforward(x)
+            y, _, x_vector = self.feedforward(x)
             
             if correct_answer == np.argmax(y):
                 correct += 1
+
             
             #print("y=", y, "\n", "s=", correct_answer)
             # ideal = np.zeros(x_vector, 1)
@@ -82,14 +84,26 @@ class Network:
         
             
         success_rate = 100/len(data_list)*correct
+        
         print("success rate =", success_rate)
-        print(y)
-
-    def train(self, data): 
+        
+            
+        
+    def onehot(self, solution, length):
+        zeros = np.zeros((length, 1))
+        for i in range(length):
+            if i == solution:
+                zeros[i][0] = 1
+                
+                break
+        
+        return zeros
+        
+    def train(self, data, data_size): 
         #Edit data
+        #print("random weights=", "\n", self.w_a, "\n", "\n", self.w_b )
         data_list = []
-        print("train")
-        print(data_list)
+        #print("train")
         for line in data:              
             line = line.strip("\n")
             line = line.split(",")
@@ -100,7 +114,6 @@ class Network:
                 num_list.append(num)
                 
             data_list.append(num_list)
-        print("!")
         for used_line in range(len(data_list)):
             x = []
             
@@ -108,25 +121,23 @@ class Network:
             correct_answer = data_list[used_line][0]
             
             for element in data_list[used_line][1::]:
-                x.append(element/255)
+                x.append(element/data_size)
                 
-            y, h, x = self.feedforward(x)
+            y, h, x_vector = self.feedforward(x)
             y = y.reshape(-1, 1)
             h = h.reshape(-1, 1)
-            x = x.reshape(-1, 1)
+            x_vector = x_vector.reshape(-1, 1)
             
-            error_out = np.array([correct_answer]) - y
+            error_out = self.onehot(correct_answer, y.shape[0]) - y
             error_hid = np.dot(self.w_b.T, error_out)
             
-            self.w_b = self.w_b + self.learning_rate * np.dot((self.learning_rate * error_out * y * (1 - y)), h.T)
-            self.w_a = self.w_a + self.learning_rate * np.dot((self.learning_rate * error_hid * h * (1 - h)), x.T)
-            
-            print(self.w_a, self.w_b)
+            self.w_b = self.w_b + self.learning_rate * np.dot((error_out * y * (1 - y)), h.T)
+            self.w_a = self.w_a + self.learning_rate * np.dot((error_hid * h * (1 - h)), x_vector.T)
+            print("training...", int(100/len(data)*used_line), "%")
+        # print(self.w_a.shape, self.w_b.shape)
+        # print(self.w_a,"\n", "\n",   self.w_b)
         
         #calc and print success rate
-        
-        
-
         
         
         
@@ -136,13 +147,13 @@ class Network:
 #     f.close()
 # oop1.train(data_list)
 #oop1.test(data_list)
-oop2 = Network(4, 3, 2, 0.7)
-with open ('data/data_dark_bright_training_20000.csv', 'rt') as f:
+oop2 = Network(784, 80, 10, 0.01)
+with open ('data\mnist_train.csv', 'rt') as f:
     raw_data = f.readlines()
     f.close()
-with open ('data/data_dark_bright_test_4000.csv', 'rt') as f:
+with open ('data\mnist_test.csv', 'rt') as f:
     test_data = f.readlines()
     f.close
-oop2.train(raw_data)
-oop2.test(test_data)
+oop2.train(raw_data, 784)
+oop2.test(test_data, 784)
 
